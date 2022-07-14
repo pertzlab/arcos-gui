@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>382</width>
+    <width>384</width>
     <height>869</height>
    </rect>
   </property>
@@ -808,13 +808,13 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Threshold for binarizing the de-trended signal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="decimals">
-             <number>2</number>
+             <number>3</number>
             </property>
             <property name="maximum">
              <double>10000.000000000000000</double>
             </property>
             <property name="singleStep">
-             <double>0.100000000000000</double>
+             <double>0.050000000000000</double>
             </property>
             <property name="value">
              <double>0.100000000000000</double>
@@ -879,13 +879,13 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Threshold for rescaling of the de-trended signal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="decimals">
-             <number>2</number>
+             <number>3</number>
             </property>
             <property name="maximum">
              <double>10000.000000000000000</double>
             </property>
             <property name="singleStep">
-             <double>0.200000000000000</double>
+             <double>0.050000000000000</double>
             </property>
             <property name="value">
              <double>0.200000000000000</double>
@@ -924,6 +924,9 @@
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
+            </property>
+            <property name="minimum">
+             <number>1</number>
             </property>
             <property name="maximum">
              <number>1000</number>
@@ -1263,19 +1266,46 @@
           <item>
            <layout class="QVBoxLayout" name="tsplot_layout"/>
           </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="expand_plot_2">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open Plot in a separate window&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="collevplot_goupbox_2">
+        <widget class="QGroupBox" name="collevplot_goupbox">
          <property name="toolTip">
           <string/>
          </property>
          <property name="title">
           <string>Collective Event Statistics</string>
          </property>
-         <layout class="QVBoxLayout" name="timeseriesplot_layout_2">
-          <item>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
            <widget class="QTabWidget" name="tabWidget_2">
             <property name="currentIndex">
              <number>0</number>
@@ -1308,6 +1338,33 @@
             </widget>
            </widget>
           </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="expand_plot">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open plot in a separate window&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -1329,7 +1386,7 @@
     </widget>
    </item>
    <item row="2" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
       <widget class="QLabel" name="label">
        <property name="toolTip">
@@ -1410,48 +1467,16 @@
   <connection>
    <sender>clip_meas</sender>
    <signal>toggled(bool)</signal>
-   <receiver>clip_high_label</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>94</x>
-     <y>137</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>101</x>
-     <y>168</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>clip_meas</sender>
-   <signal>toggled(bool)</signal>
    <receiver>clip_low_label</receiver>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>131</x>
-     <y>137</y>
+     <x>152</x>
+     <y>125</y>
     </hint>
     <hint type="destinationlabel">
-     <x>131</x>
-     <y>199</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>clip_meas</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>clip_high</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>131</x>
-     <y>137</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>349</x>
-     <y>168</y>
+     <x>152</x>
+     <y>181</y>
     </hint>
    </hints>
   </connection>
@@ -1462,12 +1487,44 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>131</x>
-     <y>137</y>
+     <x>152</x>
+     <y>125</y>
     </hint>
     <hint type="destinationlabel">
-     <x>349</x>
-     <y>199</y>
+     <x>351</x>
+     <y>181</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clip_meas</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>clip_high</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>152</x>
+     <y>125</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>351</x>
+     <y>153</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clip_meas</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>clip_high_label</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>115</x>
+     <y>125</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>122</x>
+     <y>153</y>
     </hint>
    </hints>
   </connection>

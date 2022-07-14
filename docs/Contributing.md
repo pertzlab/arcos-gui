@@ -97,7 +97,7 @@ Before you submit a pull request, check that it meets these guidelines:
 
 A reminder for the maintainers on how to deploy:
 
-- Change version numbers in __init__.py and pyproject.toml.
+- Change version numbers in "__init__.py" and "setup.cfg".
 - Make sure all your changes are committed.
 - Create a version tag.
 The tag will be used as the version string for your package.

@@ -327,8 +327,11 @@ class NoodlePlot(QtWidgets.QWidget):
         self.toolbar = NavigationToolbar(self.canvas, self)
         # construct layout
         self.combo_box = QtWidgets.QComboBox(self)
+        combobox_label = QtWidgets.QLabel(self)
+        combobox_label.setText("Projection Axis")
         layout_noodle_plot = QtWidgets.QVBoxLayout()
-        layout_combobox = QtWidgets.QVBoxLayout()
+        layout_combobox = QtWidgets.QHBoxLayout()
+        layout_combobox.addWidget(combobox_label)
         layout_combobox.addWidget(self.combo_box)
         layout_noodle_plot.addWidget(self.toolbar)
         layout_noodle_plot.addLayout(layout_combobox)
@@ -691,15 +694,18 @@ class TimeSeriesPlots(QtWidgets.QWidget):
         Parameters:
             parent (qtpy.QtWidgets.QWidget): Parent widget, optional
         """
-        super().__init__(parent)
+        super().__init__(parent=parent)
+
         # available plots
         self.plot_list = [
             "tracklength histogram",
             "measurment density plot",
+            "measurment density plot rescaled",
             "x/t-plot",
             "y/t-plot",
         ]
         self._init_widgets()
+        self.parent_gui = self.parent()
 
     def _init_widgets(self):
         """
@@ -730,7 +736,7 @@ class TimeSeriesPlots(QtWidgets.QWidget):
         with plt.style.context("dark_background"):
             plt.rcParams["figure.dpi"] = 110
             plt.rcParams["axes.edgecolor"] = "#ffffff"
-            self.fig = Figure(figsize=(3, 2), tight_layout=True)
+            self.fig = Figure(figsize=(3, 2))
             self.canvas = FigureCanvas(self.fig)
             self.ax = self.fig.add_subplot(111)
             self.ax.scatter([], [])
@@ -765,6 +771,8 @@ class TimeSeriesPlots(QtWidgets.QWidget):
         matplotlibl plot with values from
         the stored_variables object dataframe.
         """
+        self.measurement = self.parent_gui.measurement
+
         # return plottype that should be plotted
         plottype = self.combo_box.currentText()
         # sample number for position/t-plots
@@ -775,7 +783,7 @@ class TimeSeriesPlots(QtWidgets.QWidget):
         track_id = columnpicker_widget.track_id.value
         x_coordinates = columnpicker_widget.x_coordinates.value
         y_coordinates = columnpicker_widget.y_coordinates.value
-        measurement = columnpicker_widget.measurment.value
+        # measurement = columnpicker_widget.measurment.value
 
         # check if some data was loaded already, otherwise do nothing
         if not dataframe.empty:
@@ -802,16 +810,37 @@ class TimeSeriesPlots(QtWidgets.QWidget):
             elif plottype == "measurment density plot":
                 self.sample_number.setVisible(False)
                 self.spinbox_title.setVisible(False)
-                density = gaussian_kde(dataframe[measurement].interpolate())
+                density = gaussian_kde(dataframe[self.measurement].interpolate())
                 x = np.linspace(
-                    min(dataframe[measurement]),
-                    max(dataframe[measurement]),
+                    min(dataframe[self.measurement]),
+                    max(dataframe[self.measurement]),
                     100,
                 )
                 y = density(x)
                 self.ax.plot(x, y)
                 self.ax.set_xlabel("measurement values")
                 self.ax.set_ylabel("density")
+
+            elif plottype == "measurment density plot rescaled":
+                try:
+                    self.measurement_resc = self.parent_gui.start_arcos.resc_col
+                    self.measurement_resc_values = self.parent_gui.start_arcos.data[
+                        self.measurement_resc
+                    ]
+                    self.sample_number.setVisible(False)
+                    self.spinbox_title.setVisible(False)
+                    density = gaussian_kde(self.measurement_resc_values.interpolate())
+                    x = np.linspace(
+                        min(self.measurement_resc_values),
+                        max(self.measurement_resc_values),
+                        100,
+                    )
+                    y = density(x)
+                    self.ax.plot(x, y)
+                    self.ax.set_xlabel("measurement values")
+                    self.ax.set_ylabel("density")
+                except AttributeError:
+                    pass
 
             # xy/t plots
             elif plottype == "x/t-plot":

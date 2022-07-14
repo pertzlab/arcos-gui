@@ -10,7 +10,8 @@
 A napari plugin to detect and visualize collective signaling events
 
 ----------------------------------
-- Documentation: <https://bgraedel.github.io/arcos-gui>
+- Package specific Documentation: <https://bgraedel.github.io/arcos-gui>
+- ARCOS documentation: <https://arcos.gitbook.io>
 
 **A**utomated **R**ecognition of **C**ollective **S**ignalling (ARCOS) is an algorithm to identify collective spatial events in time series data,
 that was written by Maciej Dobrzynski (https://github.com/dmattek). It is available as an R (ARCOS) and python (arcos4py) package.
@@ -21,21 +22,17 @@ provides GUI elements to process this data with ARCOS. Layers containing the det
 
 Following analysis, the user can export the output as a CSV file with the detected collective events or as a sequence of images to generate a movie.
 
-![export_data](docs/screenshots/arcos_gui_preview.png)
+
+![](https://user-images.githubusercontent.com/100028238/177808096-399abe6c-37a7-473b-96d2-afda5042a51e.gif)
+
+[Watch full demo on youtube](https://www.youtube.com/watch?v=hG_z_BFcAiQ)
+
 
 # Installation
 
 You can install `arcos-gui` via [pip]:
 
     pip install arcos-gui
-
-## System Requirements
-
-Since version "0.0.2" this plugin is python native with the arcos4py package available.
-
-## Demo Video
-
-[![arcos_demo](https://img.youtube.com/vi/hG_z_BFcAiQ/0.jpg)](https://www.youtube.com/watch?v=hG_z_BFcAiQ)
 
 ## Contributing
 

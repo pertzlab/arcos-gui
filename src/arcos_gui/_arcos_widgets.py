@@ -31,6 +31,7 @@ from arcos_gui.magic_guis import (
     timestamp_options,
     toggle_visible_second_measurment,
 )
+from arcos_gui.plot_dialog import CollevPlotDialog, DataPlot
 from arcos_gui.shape_functions import (
     COLOR_CYCLE,
     fix_3d_convex_hull,
@@ -44,6 +45,7 @@ from napari.utils import Colormap
 # icons
 ICONS = Path(__file__).parent / "_icons"
 browse_file_icon = QIcon(str(ICONS / "folder-open-line.svg"))
+expand_plot_icon = QIcon(str(ICONS / "enlarge_window.png"))
 
 # initalize class
 stored_variables = data_storage()
@@ -132,6 +134,8 @@ class _MainUI:
     evplot_layout_2: QtWidgets.QVBoxLayout
     tsplot_layout: QtWidgets.QVBoxLayout
     nbr_collev_display: QtWidgets.QLCDNumber
+    expand_plot: QtWidgets.QPushButton
+    expand_plot_2: QtWidgets.QPushButton
 
     def setup_ui(self):
         uic.loadUi(self.UI_FILE, self)  # load QtDesigner .ui file
@@ -164,9 +168,13 @@ class MainWindow(QtWidgets.QWidget, _MainUI):
         self.timeseriesplot = TimeSeriesPlots(parent=self)
         self.noodle_plot = NoodlePlot(parent=self, viewer=self.viewer)
         self.collevplot = CollevPlotter(parent=self, viewer=self.viewer)
+        self.plot_dialog_collev = CollevPlotDialog(parent=self)
+        self.plot_dialog_data = DataPlot(parent=self)
         self._add_plot_widgets()
         self._init_ranged_sliderts()
         self.browse_file.setIcon(browse_file_icon)
+        self.expand_plot.setIcon(expand_plot_icon)
+        self.expand_plot_2.setIcon(expand_plot_icon)
         self._set_default_visible()
 
         self._init_callbacks_for_whattorun()
@@ -178,12 +186,36 @@ class MainWindow(QtWidgets.QWidget, _MainUI):
         self._init_callbacks_visible_arcosparameters()
         self._init_plot_callbacks()
         self._init_columns()
+        self.expand_plot.clicked.connect(self._open_plot)
+        self.expand_plot_2.clicked.connect(self._open_data_plot)
 
     def _add_plot_widgets(self):
         """Add the plot widgets to the main window."""
         self.evplot_layout.addWidget(self.collevplot)
         self.evplot_layout_2.addWidget(self.noodle_plot)
         self.tsplot_layout.addWidget(self.timeseriesplot)
+
+    def _open_plot(self):
+        self.plot_dialog_collev.closeEvent = self._close_plot
+        self.plot_dialog_collev.evplot_layout.addWidget(self.collevplot)
+        self.plot_dialog_collev.evplot_layout_2.addWidget(self.noodle_plot)
+        self.plot_dialog_collev.show()
+        self.collevplot_goupbox.hide()
+
+    def _open_data_plot(self):
+        self.plot_dialog_data.closeEvent = self._close_plot_2
+        self.plot_dialog_data.tsplot_layout.addWidget(self.timeseriesplot)
+        self.plot_dialog_data.show()
+        self.timeseriesplot_groupbox.hide()
+
+    def _close_plot(self, event):
+        self.evplot_layout.addWidget(self.collevplot)
+        self.evplot_layout_2.addWidget(self.noodle_plot)
+        self.collevplot_goupbox.show()
+
+    def _close_plot_2(self, event):
+        self.tsplot_layout.addWidget(self.timeseriesplot)
+        self.timeseriesplot_groupbox.show()
 
     def _ts_plot_update(self):
         """Updates the ts-plot with new data."""
@@ -414,7 +446,7 @@ class MainWindow(QtWidgets.QWidget, _MainUI):
         """Used to load sample data from test_data.
         and set columnpicker to indicated strings."""
         self.file_LineEdit.setText(value)
-        self.open_columnpicker()
+        self.open_file_button.click()
         columnpicker.frame.value = "t"
         columnpicker.track_id.value = "id"
         columnpicker.x_coordinates.value = "x"
