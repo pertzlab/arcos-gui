@@ -11,7 +11,7 @@
 A napari plugin to detect and visualize collective signaling events
 
 ----------------------------------
-- Package specific Documentation: <https://bgraedel.github.io/arcos-gui>
+- Package specific Documentation: <https://pertzlab.github.io/arcos-gui>
 - ARCOS documentation: <https://arcos.gitbook.io>
 
 **A**utomated **R**ecognition of **C**ollective **S**ignalling (ARCOS) is an algorithm to identify collective spatial events in time series data.
