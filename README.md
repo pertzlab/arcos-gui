@@ -1,11 +1,11 @@
 # arcos-gui
 
-[![License](https://img.shields.io/pypi/l/arcos-gui.svg?color=green)](https://github.com/bgraedel/arcos-gui/raw/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/arcos-gui.svg?color=green)](https://github.com/bgraedel/pertzlab/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/arcos-gui.svg)](https://pypi.org/project/arcos-gui)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/arcos-gui)](https://anaconda.org/conda-forge/arcos-gui)
 [![Python Version](https://img.shields.io/pypi/pyversions/arcos-gui.svg?color=green?)](https://python.org)
-[![tests](https://github.com/bgraedel/arcos-gui/workflows/tests/badge.svg)](https://github.com/bgraedel/arcos-gui/actions)
-[![codecov](https://codecov.io/gh/bgraedel/arcos-gui/branch/main/graph/badge.svg)](https://codecov.io/gh/bgraedel/arcos-gui)
+[![tests](https://github.com/bgraedel/arcos-gui/workflows/tests/badge.svg)](https://github.com/pertzlab/arcos-gui/actions)
+[![codecov](https://codecov.io/gh/bgraedel/arcos-gui/branch/main/graph/badge.svg)](https://codecov.io/gh/pertzlab/arcos-gui)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/arcos-gui)](https://napari-hub.org/plugins/arcos-gui)
 
 A napari plugin to detect and visualize collective signaling events
@@ -15,7 +15,7 @@ A napari plugin to detect and visualize collective signaling events
 - ARCOS documentation: <https://arcos.gitbook.io>
 
 **A**utomated **R**ecognition of **C**ollective **S**ignalling (ARCOS) is an algorithm to identify collective spatial events in time series data.
-It is available as an [R (ARCOS)](https://github.com/dmattek/ARCOS) and [python (arcos4py)](https://github.com/bgraedel/arcos4py) package.
+It is available as an [R (ARCOS)](https://github.com/pertzlab/ARCOS) and [python (arcos4py)](https://github.com/pertzlab/arcos4py) package.
 ARCOS can identify and visualize collective protein activation in 2- and 3D cell cultures over time.
 
 This plugin integrates ARCOS into napari. Users can import tracked time-series data in CSV format or load data from napari-layer properties (such as the ones generated with [napari-skimage-regionprops](https://www.napari-hub.org/plugins/napari-skimage-regionprops). The plugin
