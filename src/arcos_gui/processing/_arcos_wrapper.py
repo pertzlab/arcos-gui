@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import math
 import os
 import warnings
 from itertools import product
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List, Optional, Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -14,6 +15,7 @@ import numpy as np
 import pandas as pd
 from arcos4py import ARCOS
 from arcos4py.plotting import NoodlePlot, statsPlots
+from arcos4py.plotting._plotting import _yield_animation_frames
 from arcos4py.tools import (
     calculate_statistics,
     calculate_statistics_per_frame,
@@ -21,7 +23,7 @@ from arcos4py.tools import (
     filterCollev,
 )
 from arcos4py.tools._detect_events import DataFrameTracker, Linker
-from arcos_gui.processing._data_storage import ArcosParameters, columnnames
+from arcos_gui.processing._data_storage import ArcosParameters, DataStorage, columnnames
 from arcos_gui.processing._preprocessing_utils import (
     calculate_measurement,
     check_for_collid_column,
@@ -29,9 +31,15 @@ from arcos_gui.processing._preprocessing_utils import (
     create_output_folders,
     filter_data,
 )
-from arcos_gui.tools import AVAILABLE_OPTIONS_FOR_BATCH, OPERATOR_DICTIONARY
+from arcos_gui.tools._config import (
+    AVAILABLE_OPTIONS_FOR_BATCH,
+    DEFAULT_ALL_CELLS_CMAP,
+    DEFAULT_BIN_COLOR,
+    OPERATOR_DICTIONARY,
+)
 from napari.qt.threading import WorkerBase, WorkerBaseSignals
 from qtpy.QtCore import Signal
+from tqdm.auto import tqdm
 
 
 class customARCOS(ARCOS):
@@ -652,6 +660,8 @@ class TemporaryMatplotlibBackend:
         self.original_backend = matplotlib.get_backend()
 
     def __enter__(self):
+        # set svg rc parameters to use real font
+        plt.rcParams["svg.fonttype"] = "none"
         plt.switch_backend(self.temp_backend)
 
     def __exit__(self, *args):
@@ -673,33 +683,44 @@ class BatchProcessor(WorkerBase):
     def __init__(
         self,
         input_path: str,
-        arcos_parameters: ArcosParameters,
-        columnames: columnnames,
-        min_tracklength: int,
-        max_tracklength: int,
+        data_storage_instance: DataStorage,
         what_to_export: list[str],
     ):
         super().__init__(SignalsClass=BatchProcessorSignals)
         self.input_path = input_path
-        self.arcos_parameters = arcos_parameters
-        self.columnames = columnames
-        self.min_track_length = min_tracklength
-        self.max_track_length = max_tracklength
+        self.data_storage_instance = data_storage_instance
+        self.arcos_parameters = data_storage_instance.arcos_parameters.value
+        self.columnames = data_storage_instance.columns.value
+        self.min_track_length = data_storage_instance.min_max_tracklenght.value[0]
+        self.max_track_length = data_storage_instance.min_max_tracklenght.value[1]
         self.what_to_export = what_to_export
 
     def _create_fileendings_list(self):
         """Create a list o file endings for the files to be exported."""
-        fileendings = []
-        corresponding_fileendings = [".csv", ".csv", ".csv", ".svg", ".svg"]
+        corresponding_fileendings = [
+            ".csv",
+            ".csv",
+            ".csv",
+            ".svg",
+            ".svg",
+            "",
+        ]  # Marker for directory
+        endings_or_markers = []
+        # Use the globally defined (or class-level) lists
+        option_to_ending_map = dict(
+            zip(AVAILABLE_OPTIONS_FOR_BATCH, corresponding_fileendings)
+        )
+
         for option in self.what_to_export:
-            if option in AVAILABLE_OPTIONS_FOR_BATCH:
-                # get index of option in AVAILABLE_OPTIONS_FOR_BATCH
-                index = AVAILABLE_OPTIONS_FOR_BATCH.index(option)
-                # get corresponding file ending
-                file_ending = corresponding_fileendings[index]
-                # add file ending to list
-                fileendings.append(file_ending)
-        return fileendings
+            if option in option_to_ending_map:
+                endings_or_markers.append(option_to_ending_map[option])
+            else:
+                # This case should ideally be caught by validation earlier
+                print(
+                    f"Warning: Unknown export option '{option}' encountered when creating endings list."
+                )
+                endings_or_markers.append("")  # Add placeholder if needed
+        return endings_or_markers
 
     def run_arcos_batch(self, df):
         """Run arcos with input parameters.
@@ -747,8 +768,6 @@ class BatchProcessor(WorkerBase):
             min_dur=self.arcos_parameters.min_dur.value,
             total_event_size=self.arcos_parameters.total_event_size.value,
         )
-        if arcos_df_filtered.empty:
-            return arcos_df_filtered, pd.DataFrame()
 
         arcos_stats = calculate_arcos_stats(
             df_arcos_filtered=arcos_df_filtered,
@@ -760,6 +779,146 @@ class BatchProcessor(WorkerBase):
         arcos_stats = arcos_stats.dropna()
 
         return arcos_df_filtered, arcos_stats
+
+    def save_animation_frames(
+        self,
+        arcos_data: pd.DataFrame,
+        all_cells_data: pd.DataFrame,
+        output_dir: str,
+        # --- Parameters passed to yield_animation_frames ---
+        frame_col: str,
+        collid_col: str,
+        pos_cols: List[str],
+        measurement_col: Optional[str] = None,
+        bin_col: Optional[str] = None,
+        plot_all_cells: bool = True,
+        color_all_cells_by_measurement: bool = True,
+        plot_bin_cells: bool = True,
+        plot_events: bool = True,
+        plot_convex_hulls: bool = True,
+        point_size: float = 10.0,
+        event_alpha: float = 0.9,
+        hull_alpha: float = 1,
+        hull_linewidth_size_factor: float = 0.25,
+        bin_cell_color: str = DEFAULT_BIN_COLOR,
+        bin_cell_alpha: float = 0.7,
+        bin_cell_marker_factor: float = 0.8,
+        all_cells_cmap: str = DEFAULT_ALL_CELLS_CMAP,
+        all_cells_fixed_color: str = "gray",
+        all_cells_alpha: float = 0.5,
+        all_cells_marker_size_factor: float = 0.2,
+        measurement_min_max: Optional[Tuple[float, float]] = None,
+        add_measurement_colorbar: bool = True,
+        # --- Parameters for the save function itself ---
+        filename_prefix: str = "frame",
+        dpi: int = 150,
+    ) -> None:
+        # --- Setup Output Directory ---
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+            print(f"Saving animation frames to directory: {output_dir}")
+        except OSError as e:
+            print(f"Error creating output directory '{output_dir}': {e}")
+            return  # Cannot proceed without output directory
+
+        # --- Determine Frame Range and Padding (needed for filenames) ---
+        min_frame_val = float("inf")
+        max_frame_val = float("-inf")
+        if not arcos_data.empty and frame_col in arcos_data:
+            min_frame_val = min(min_frame_val, arcos_data[frame_col].min())
+            max_frame_val = max(max_frame_val, arcos_data[frame_col].max())
+        if not all_cells_data.empty and frame_col in all_cells_data:
+            min_frame_val = min(min_frame_val, all_cells_data[frame_col].min())
+            max_frame_val = max(max_frame_val, all_cells_data[frame_col].max())
+
+        if min_frame_val == float("inf") or max_frame_val == float("-inf"):
+            print(
+                "Could not determine frame range from input data. No frames will be saved."
+            )
+            return
+
+        num_total_frames = int(max_frame_val) - int(min_frame_val) + 1
+        padding_digits = (
+            math.ceil(math.log10(max(1, int(max_frame_val)) + 1))
+            if max_frame_val >= 0
+            else 1
+        )  # Calculate padding based on max frame number
+
+        # --- Instantiate the Generator ---
+        frame_generator = _yield_animation_frames(
+            arcos_data=arcos_data,
+            all_cells_data=all_cells_data,
+            frame_col=frame_col,
+            collid_col=collid_col,
+            pos_cols=pos_cols,
+            measurement_col=measurement_col,
+            bin_col=bin_col,
+            plot_all_cells=plot_all_cells,
+            color_all_cells_by_measurement=color_all_cells_by_measurement,
+            plot_bin_cells=plot_bin_cells,
+            plot_events=plot_events,
+            plot_convex_hulls=plot_convex_hulls,
+            point_size=point_size,
+            event_alpha=event_alpha,
+            hull_alpha=hull_alpha,
+            hull_linewidth_size_factor=hull_linewidth_size_factor,
+            bin_cell_color=bin_cell_color,
+            bin_cell_alpha=bin_cell_alpha,
+            bin_cell_marker_factor=bin_cell_marker_factor,
+            all_cells_cmap=all_cells_cmap,
+            all_cells_fixed_color=all_cells_fixed_color,
+            all_cells_alpha=all_cells_alpha,
+            all_cells_marker_size_factor=all_cells_marker_size_factor,
+            measurement_min_max=measurement_min_max,
+            add_measurement_colorbar=add_measurement_colorbar,
+        )
+
+        # --- Iterate, Save, and Close ---
+        saved_frame_count = 0
+        print(
+            f"Starting frame generation and saving (estimated {num_total_frames} frames)..."
+        )
+
+        for fig in tqdm(
+            frame_generator, total=num_total_frames, desc="Saving frames", unit="frame"
+        ):
+            if self.abort_requested:
+                self.aborted.emit()
+                break
+            # Get frame number from the figure title (set by the generator)
+            try:
+                title = fig.axes[0].get_title()
+                # Handle potential variations in title format slightly more robustly
+                frame_num_str = title.split(":")[-1].strip()
+                frame_num = int(frame_num_str)
+            except (IndexError, ValueError, AttributeError) as e:
+                warnings.warn(
+                    f"Could not reliably determine frame number from figure title ('{title}').\
+                        Using counter. Error: {e}"
+                )
+                # Fallback to a simple counter if title parsing fails
+                frame_num = saved_frame_count + int(min_frame_val)  # Estimate frame num
+
+            # Construct filename with padding
+            frame_filename = f"{filename_prefix}_{frame_num:0{padding_digits}d}.png"
+            output_path = os.path.join(output_dir, frame_filename)
+
+            # Save the figure
+            try:
+                fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
+                saved_frame_count += 1
+            except Exception as e:
+                print(f"\nError saving frame {output_path}: {e}")
+                # Decide whether to continue or stop on error (here we continue)
+            finally:
+                # CRITICAL: Close the figure to free memory, regardless of save success
+                plt.close(fig)
+
+        print(f"\nFinished saving {saved_frame_count} frames to {output_dir}.")
+        if saved_frame_count == 0:
+            print(
+                "Note: No frames were generated or saved. Check input data and parameters."
+            )
 
     def run(self):
         """Run arcos with input parameters.
@@ -815,6 +974,9 @@ class BatchProcessor(WorkerBase):
                 base_path, _ = create_output_folders(
                     self.input_path, self.what_to_export
                 )
+                self.data_storage_instance.export_to_yaml(
+                    filepath=os.path.join(base_path, "arcos_parameters.yaml"),
+                )
                 for file in file_list:
                     if self.abort_requested:
                         self.aborted.emit()
@@ -857,11 +1019,11 @@ class BatchProcessor(WorkerBase):
                             self.aborted.emit()
                             break
 
-                        # add new row to summary stats
+                        # Add new row to summary stats
                         for key in summary_stats.keys():
                             summary_stats[key].append(pd.NA)
 
-                        # update general stats that should be present for all iterations
+                        # Update general stats
                         summary_stats["file"][-1] = file_name
                         summary_stats["fov"][-1] = fov if fov is not None else pd.NA
                         summary_stats["additional_filter"][-1] = (
@@ -870,6 +1032,7 @@ class BatchProcessor(WorkerBase):
                             else pd.NA
                         )
 
+                        # Filter input data
                         df_filtered = filter_data(
                             df_in=df,
                             field_of_view_id_name=self.columnames.position_id,
@@ -885,19 +1048,20 @@ class BatchProcessor(WorkerBase):
                             frame_interval=1,
                             st_out=empty_std_out,
                         )[0]
+
+                        # Handle empty filtered data
                         if df_filtered.empty:
-                            # set event count to 0, rest is already set to nan
                             summary_stats["event_count"][-1] = 0
 
+                            # Construct detailed error message
                             position_id_str = (
                                 f"{self.columnames.position_id}:{fov}"
-                                if self.columnames.position_id is not None
-                                and fov is not None
+                                if self.columnames.position_id and fov is not None
                                 else ""
                             )
                             additional_filter_str = (
                                 f"{self.columnames.additional_filter_column}:{additional_filter}"
-                                if self.columnames.additional_filter_column is not None
+                                if self.columnames.additional_filter_column
                                 and additional_filter is not None
                                 else ""
                             )
@@ -911,48 +1075,49 @@ class BatchProcessor(WorkerBase):
                                 if position_id_str or additional_filter_str
                                 else ""
                             )
-                            error_message = f"No data for file {file} {for_str}{position_id_str}{connector}{additional_filter_str}"  # noqa E501
-                            self.progress_update_filters.emit()
-                            print(error_message)
-                            continue
 
-                        posx = self.columnames.posCol[0]
-                        posy = self.columnames.posCol[1]
-                        if len(self.columnames.posCol) == 2:
-                            posz = None
-                        else:
-                            posz = self.columnames.posCol[2]
+                            print(
+                                f"No data for file {file} {for_str}{position_id_str}{connector}{additional_filter_str}"
+                            )
 
+                        # Determine dimensionality
+                        posx, posy = (
+                            self.columnames.posCol[0],
+                            self.columnames.posCol[1],
+                        )
+                        posz = (
+                            self.columnames.posCol[2]
+                            if len(self.columnames.posCol) == 3
+                            else None
+                        )
+
+                        # Run ARCOS batch analysis
                         arcos_df_filtered, arcos_stats = self.run_arcos_batch(
                             df_filtered
                         )
 
                         if arcos_df_filtered.empty:
-                            # set event count to 0, rest is already set to nan
                             summary_stats["event_count"][-1] = 0
-
                             print(
                                 f"No events detected for file {file} filters fov:{fov} additional:{additional_filter}"
-                            )  # noqa E501
-                            self.progress_update_filters.emit()
-                            continue
-
-                        # update summary stats
-                        summary_stats["event_count"][-1] = arcos_stats[
-                            "collid"
-                        ].nunique()
-                        summary_stats["avg_total_size"][-1] = arcos_stats[
-                            "total_size"
-                        ].mean()
-                        summary_stats["avg_total_size_std"][-1] = arcos_stats[
-                            "total_size"
-                        ].std()
-                        summary_stats["avg_duration"][-1] = arcos_stats[
-                            "duration"
-                        ].mean()
-                        summary_stats["avg_duration_std"][-1] = arcos_stats[
-                            "duration"
-                        ].std()
+                            )
+                        else:
+                            # Update summary stats
+                            summary_stats["event_count"][-1] = arcos_stats[
+                                "collid"
+                            ].nunique()
+                            summary_stats["avg_total_size"][-1] = arcos_stats[
+                                "total_size"
+                            ].mean()
+                            summary_stats["avg_total_size_std"][-1] = arcos_stats[
+                                "total_size"
+                            ].std()
+                            summary_stats["avg_duration"][-1] = arcos_stats[
+                                "duration"
+                            ].mean()
+                            summary_stats["avg_duration_std"][-1] = arcos_stats[
+                                "duration"
+                            ].std()
 
                         out_file_name = create_file_names(
                             base_path,
@@ -975,6 +1140,7 @@ class BatchProcessor(WorkerBase):
                                 index=False,
                             )
                         if "per_frame_statistics" in self.what_to_export:
+                            # Compute stats per frame
                             arcos_stats_per_frame = calculate_statistics_per_frame(
                                 data=arcos_df_filtered,
                                 frame_column=self.columnames.frame_column,
@@ -1009,10 +1175,49 @@ class BatchProcessor(WorkerBase):
                                 posy=posy,
                                 posz=posz,
                             )
+                            _, ax = noodle_plot.plot(posx)
+                            min_frame = df[self.columnames.frame_column].min()
+                            max_frame = df[self.columnames.frame_column].max()
+                            ax.set_xlim(min_frame, max_frame)
+                            min_pos = df[posx].min()
+                            max_pos = df[posx].max()
+                            ax.set_ylim(min_pos, max_pos)
+                            ax.set_xlabel(self.columnames.frame_column)
+                            ax.set_ylabel(posx)
 
-                            noodle_plot.plot(posx)
                             plt.savefig(out_file_name["noodleplot"])
                             plt.close()
+
+                        if "timelapse_frames" in self.what_to_export:
+                            frame_output_dir = out_file_name["timelapse_frames"]
+                            # Create a prefix based on the original file/filters
+                            frame_prefix = "frame"
+                            self.save_animation_frames(
+                                arcos_data=arcos_df_filtered,
+                                all_cells_data=df_filtered,
+                                frame_col=self.columnames.frame_column,
+                                collid_col="collid",
+                                pos_cols=self.columnames.posCol,
+                                measurement_col=self.columnames.measurement_column,
+                                bin_col=self.columnames.measurement_bin,
+                                plot_all_cells=self.arcos_parameters.add_all_cells.value,
+                                plot_bin_cells=self.arcos_parameters.add_bin_cells.value,
+                                plot_events=True,
+                                plot_convex_hulls=self.arcos_parameters.add_convex_hull.value,
+                                point_size=self.data_storage_instance.point_size.value,
+                                event_alpha=0.9,
+                                hull_alpha=0.9,
+                                bin_cell_color="black",
+                                bin_cell_alpha=0.7,
+                                bin_cell_marker_factor=0.5,
+                                all_cells_cmap=self.data_storage_instance.lut.value,
+                                all_cells_alpha=0.7,
+                                all_cells_marker_size_factor=10,
+                                measurement_min_max=self.data_storage_instance.min_max_meas.value,
+                                add_measurement_colorbar=True,
+                                output_dir=frame_output_dir,
+                                filename_prefix=frame_prefix,
+                            )
 
                         self.progress_update_filters.emit()
 

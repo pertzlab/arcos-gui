@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>369</width>
+    <height>365</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Collectiv Event Plots</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget_2">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="scatter_plot">
+      <attribute name="title">
+       <string>Scatter Plot</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Plot displaying collective event duration over collective event total size</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <layout class="QVBoxLayout" name="evplot_layout"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="noodle_plot">
+      <attribute name="title">
+       <string>Noodle Plot</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Collective Event Tracks, colors indicate unique collective events, tracks are projected along one coordinate</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <layout class="QVBoxLayout" name="evplot_layout_2"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

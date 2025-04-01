@@ -137,6 +137,11 @@ class _exportwidget(QtWidgets.QWidget):
             directory=base_path,
             parent=self,
         )
+        # toggle of 'timelapse_frames' checkbox
+        for checkbox in dialog.checkboxes.items():
+            if checkbox[0] == "timelapse_frames":
+                checkbox[1].setChecked(False)
+                # checkbox[1].setEnabled(False)
         dialog.setWindowTitle("Select Directory")
 
         if dialog.exec_():
@@ -289,10 +294,7 @@ class ExportController:
             return
         self.batch_worker = BatchProcessor(
             inpath,
-            self._data_storage_instance.arcos_parameters.value,
-            self._data_storage_instance.columns.value,
-            self._data_storage_instance.min_max_tracklenght.value[0],
-            self._data_storage_instance.min_max_tracklenght.value[1],
+            self._data_storage_instance,
             what_to_export,
         )
 

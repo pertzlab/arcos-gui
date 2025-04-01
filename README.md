@@ -1,11 +1,11 @@
 # arcos-gui
 
-[![License](https://img.shields.io/pypi/l/arcos-gui.svg?color=green)](https://github.com/bgraedel/pertzlab/raw/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/arcos-gui.svg?color=green)](https://github.com/pertzlab/pertzlab/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/arcos-gui.svg)](https://pypi.org/project/arcos-gui)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/arcos-gui)](https://anaconda.org/conda-forge/arcos-gui)
 [![Python Version](https://img.shields.io/pypi/pyversions/arcos-gui.svg?color=green?)](https://python.org)
-[![tests](https://github.com/bgraedel/arcos-gui/workflows/tests/badge.svg)](https://github.com/pertzlab/arcos-gui/actions)
-[![codecov](https://codecov.io/gh/bgraedel/arcos-gui/branch/main/graph/badge.svg)](https://codecov.io/gh/pertzlab/arcos-gui)
+[![tests](https://github.com/pertzlab/arcos-gui/workflows/tests/badge.svg)](https://github.com/pertzlab/arcos-gui/actions)
+[![codecov](https://codecov.io/gh/pertzlab/arcos-gui/branch/main/graph/badge.svg)](https://codecov.io/gh/pertzlab/arcos-gui)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/arcos-gui)](https://napari-hub.org/plugins/arcos-gui)
 
 A napari plugin to detect and visualize collective signaling events
@@ -42,13 +42,13 @@ Or via [conda-forge]:
 ## Usage
 
 The plugin can be started from the napari menu `Plugins > ARCOS GUI`.
-For detailed instructions on how to use the plugin, please refer to the [Usage section of the documentation](https://bgraedel.github.io/arcos-gui/Usage).
+For detailed instructions on how to use the plugin, please refer to the [Usage section of the documentation](https://pertzlab.github.io/arcos-gui/Usage).
 
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
 the coverage at least stays the same before you submit a pull request.
-See the [Contributing Guide](https://bgraedel.github.io/arcos-gui/Contributing) for more information.
+See the [Contributing Guide](https://pertzlab.github.io/arcos-gui/Contributing) for more information.
 
 ## License
 
@@ -70,7 +70,7 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [Mozilla Public License 2.0]: https://www.mozilla.org/media/MPL/2.0/index.txt
 [cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
 
-[file an issue]: https://github.com/bgraedel/arcos-gui/issues
+[file an issue]: https://github.com/pertzlab/arcos-gui/issues
 
 [napari]: https://github.com/napari/napari
 [tox]: https://tox.readthedocs.io/en/latest/

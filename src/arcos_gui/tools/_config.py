@@ -49,8 +49,9 @@ AVAILABLE_OPTIONS_FOR_BATCH = [
     "arcos_output",
     "arcos_stats",
     "per_frame_statistics",
-    "noodleplot",
     "statsplot",
+    "noodleplot",
+    "timelapse_frames",
 ]
 
 ALLOWED_SETTINGS = [
@@ -89,3 +90,6 @@ ARCOSPARAMETERS_DEFAULTS = {
     "bin_advanded_settings": False,
     "detect_advanced_options": False,
 }
+
+DEFAULT_BIN_COLOR = "black"
+DEFAULT_ALL_CELLS_CMAP = "inferno"

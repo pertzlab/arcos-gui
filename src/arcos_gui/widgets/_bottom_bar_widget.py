@@ -36,7 +36,7 @@ class _bottombar_widget(QtWidgets.QWidget):
         self._connect_signals()
 
     def _update_help_pressed(self):
-        url = QUrl("https://bgraedel.github.io/arcos-gui/Usage/")
+        url = QUrl("https://pertzlab.github.io/arcos-gui/Usage/")
         QDesktopServices.openUrl(url)
 
     def _connect_signals(self):
