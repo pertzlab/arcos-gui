@@ -2,7 +2,7 @@
 
 __author__ = """Benjamin Graedel"""
 __email__ = "benjamin.graedel@unibe.ch"
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 from arcos_gui.widgets._arcos_widget import ArcosController
 from arcos_gui.widgets._bottom_bar_widget import BottombarController
