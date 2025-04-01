@@ -65,7 +65,7 @@ def create_file_names(
         if additional_filter is not None and additional_filter_name is not None:
             file_name_current += f"_{additional_filter_name}{additional_filter}"
         file_paths[file_to_export] = os.path.join(
-            base_path, file_to_export, f"{file_name_current}.{ext}"
+            base_path, file_to_export, f"{file_name_current}{ext}"
         )
 
     return file_paths

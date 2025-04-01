@@ -525,6 +525,7 @@ class NoodlePlot(QtWidgets.QWidget):
                     c=self.colors[int(dat[0, -1])],
                     picker=1,
                 )
+                self.ax.set_xlim(0, int(self.viewer.dims.range[0][1]))
 
             self.nbr_collev = self.stats[self.collid_name].nunique()
         # generate empty annotation

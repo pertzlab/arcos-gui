@@ -3,12 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 from arcos4py import ARCOS
-from arcos_gui.processing import (
-    ArcosParameters,
-    BatchProcessor,
-    DataStorage,
-    columnnames,
-)
+from arcos_gui.processing import BatchProcessor, DataStorage
 from arcos_gui.processing._arcos_wrapper import (
     arcos_worker,
     binarization,
@@ -524,34 +519,25 @@ def test_init_batch():
     # Test the initialization of the BatchProcessor class
 
     # Replace these with the correct initialization based on your class definitions
-    arcos_parameters = ArcosParameters()
-    column_names = columnnames()
-
+    data_storage = DataStorage()
     bp = BatchProcessor(
         input_path="path/to/directory",
-        arcos_parameters=arcos_parameters,
-        columnames=column_names,
-        min_tracklength=1,
-        max_tracklength=100,
+        data_storage_instance=data_storage,
         what_to_export=["arcos_output", "arcos_stats"],
     )
 
     assert bp.input_path == "path/to/directory"
-    assert bp.arcos_parameters == arcos_parameters
-    assert bp.columnames == column_names
+    assert bp.arcos_parameters == data_storage.arcos_parameters
+    assert bp.columnames == data_storage.columns
 
 
 def test_create_fileendings_list():
     # Test the _create_fileendings_list method
-    arcos_parameters = ArcosParameters()
-    column_names = columnnames()
+    data_storage = DataStorage()
 
     bp = BatchProcessor(
         input_path="path/to/directory",
-        arcos_parameters=arcos_parameters,
-        columnames=column_names,
-        min_tracklength=1,
-        max_tracklength=100,
+        data_storage_instance=data_storage,
         what_to_export=["arcos_output", "statsplot"],
     )
 
@@ -563,27 +549,23 @@ def test_create_fileendings_list():
 
 
 def test_run_arcos_batch():
-    arcos_parameters = ArcosParameters()
-    column_names = columnnames(
-        frame_column="t",
-        object_id="id",
-        x_column="x",
-        y_column="y",
-        z_column=None,
-        measurement_column="m",
-        position_id=None,
-        additional_filter_column=None,
-        measurement_math_operation=None,
-        measurement_bin="m.bin",
-        measurement_resc="m.resc",
-    )
+    ds = DataStorage()
+    ds.columns.value.frame_column = "t"
+    ds.columns.value.object_id = "id"
+    ds.columns.value.x_column = "x"
+    ds.columns.value.y_column = "y"
+    ds.columns.value.z_column = None
+    ds.columns.value.measurement_column = "m"
+    ds.columns.value.position_id = None
+    ds.columns.value.additional_filter_column = None
+    ds.columns.value.measurement_math_operation = None
+    ds.columns.value.measurement_bin = "m.bin"
+    ds.columns.value.measurement_resc = "m.resc"
+    ds.min_max_tracklenght.value = [1, 100]
 
     bp = BatchProcessor(
         input_path="src/arcos_gui/_tests/test_data/arcos_data.csv",
-        arcos_parameters=arcos_parameters,
-        columnames=column_names,
-        min_tracklength=1,
-        max_tracklength=100,
+        data_storage_instance=ds,
         what_to_export=["arcos_output", "arcos_stats"],
     )
 

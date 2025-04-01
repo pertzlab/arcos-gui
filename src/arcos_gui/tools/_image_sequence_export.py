@@ -2,6 +2,12 @@
 
 from napari_timestamper import render_as_rgb, save_image_stack
 
+DEFAULT_EVENT_CMAP = "tab20"
+DEFAULT_BIN_COLOR = "black"
+DEFAULT_ALL_CELLS_COLOR = "gray"
+# if TYPE_CHECKING:
+# from arcos_gui.processing._data_storage import ArcosParameters, columnnames
+
 
 class MovieExporter:
     """Export image sequence from napari viewer."""

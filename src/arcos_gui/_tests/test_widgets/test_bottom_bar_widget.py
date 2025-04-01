@@ -43,5 +43,5 @@ def test_update_help_pressed(bb_controller, mocker):
     mocker.patch("PyQt5.QtGui.QDesktopServices.openUrl")
     bb_controller.widget.arcos_help_button.click()
     QtGui.QDesktopServices.openUrl.assert_called_once_with(
-        QtCore.QUrl("https://bgraedel.github.io/arcos-gui/Usage/")
+        QtCore.QUrl("https://pertzlab.github.io/arcos-gui/Usage/")
     )
